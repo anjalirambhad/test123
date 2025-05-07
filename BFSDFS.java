@@ -1,7 +1,6 @@
 //BFS-DFS - 1
 
 import java.util.*;
-import java.io.*;
 
 class Graph {
     private Map<Integer, List<Integer>> adjList = new HashMap<>();
@@ -36,31 +35,34 @@ class Graph {
     public void bfs(int start) {
         Set<Integer> visited = new HashSet<>();
         Queue<Integer> queue = new LinkedList<>();
-        List<Integer> traversal = new ArrayList<>();
-
         visited.add(start);
         queue.add(start);
 
-        int level = 0;
-        System.out.println("\nBFS (Level-by-level, step-by-step traversal):");
+        System.out.println("\nRecursive BFS (Level-by-level):");
+        bfsRecursive(queue, visited, 0, new ArrayList<>());
+    }
 
-        while (!queue.isEmpty()) {
-            int size = queue.size();
-            System.out.print("Level " + level + ": ");
-            for (int i = 0; i < size; i++) {
-                int node = queue.poll();
-                traversal.add(node);
-                System.out.print(node + " ");
-                for (int neighbor : adjList.getOrDefault(node, new ArrayList<>())) {
-                    if (!visited.contains(neighbor)) {
-                        visited.add(neighbor);
-                        queue.add(neighbor);
-                    }
+    private void bfsRecursive(Queue<Integer> queue, Set<Integer> visited, int level, List<Integer> traversal) {
+        if (queue.isEmpty()) return;
+
+        int size = queue.size();
+        System.out.print("Level " + level + ": ");
+        List<Integer> currentLevel = new ArrayList<>();
+
+        for (int i = 0; i < size; i++) {
+            int node = queue.poll();
+            traversal.add(node);
+            currentLevel.add(node);
+            for (int neighbor : adjList.getOrDefault(node, new ArrayList<>())) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    queue.add(neighbor);
                 }
             }
-            System.out.println("-> Current BFS Traversal: " + traversal);
-            level++;
         }
+
+        System.out.print(currentLevel + " -> Current BFS Traversal: " + traversal + "\n");
+        bfsRecursive(queue, visited, level + 1, traversal);
     }
 }
 
