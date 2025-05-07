@@ -1,0 +1,441 @@
+//Scientific Calculator
+public class Sc {
+
+    public static Decimal add(Decimal num1, Decimal num2) {
+        return num1 + num2;
+    }
+
+    public static Decimal subtract(Decimal num1, Decimal num2) {
+        return num1 - num2;
+    }
+
+    public static Decimal multiply(Decimal num1, Decimal num2) {
+        return num1 * num2;
+    }
+
+    public static Decimal divide(Decimal num1, Decimal num2) {
+        if (num2 == 0) {
+            throw new System.DmlException('Cannot divide by zero');
+        }
+        return num1 / num2;
+    }
+
+    public static Decimal sqrt(Decimal num) {
+        if (num < 0) {
+            throw new System.DmlException('Cannot calculate square root of a negative number');
+        }
+        return Math.sqrt(num);
+    }
+
+    public static Decimal power(Decimal base, Integer exponent) {
+        Decimal result = 1;
+        Boolean isNegativeExponent = exponent < 0;
+        if (isNegativeExponent) {
+            base = 1 / base;
+            exponent = -exponent;
+        }
+        
+        for (Integer i = 0; i < exponent; i++) {
+            result *= base;
+        }
+        
+        return result;
+    }
+
+    public static Decimal sine(Decimal angle) {
+        Decimal radians = angle * Math.PI / 180;
+        return Math.sin(radians);
+    }
+
+    public static Decimal cosine(Decimal angle) {
+        Decimal radians = angle * Math.PI / 180;
+        return Math.cos(radians);
+    }
+
+    public static Decimal tangent(Decimal angle) {
+        Decimal radians = angle * Math.PI / 180;
+        return Math.tan(radians);
+    }
+
+    public static Decimal log10(Decimal num) {
+        if (num <= 0) {
+            throw new System.DmlException('Logarithm undefined for zero or negative numbers');
+        }
+        return Math.log10(num);
+    }
+
+    public static Decimal log(Decimal num) {
+        if (num <= 0) {
+            throw new System.DmlException('Logarithm undefined for zero or negative numbers');
+        }
+        return Math.log(num);
+    }
+}
+
+//Matrix Addition
+public class MatrixAddition {
+
+    public static void addMatrices(List<List<Integer>> mat1, List<List<Integer>> mat2) {
+        Integer rows = mat1.size();
+        Integer cols = mat1[0].size();
+
+        if (rows != mat2.size() || cols != mat2[0].size()) {
+            System.debug('Matrix addition not possible. Matrices must have the same dimensions.');
+            return;
+        }
+
+        // Result matrix
+        List<List<Integer>> result = new List<List<Integer>>();
+        
+        // Initialize result matrix
+        for (Integer i = 0; i < rows; i++) {
+            List<Integer> row = new List<Integer>();
+            for (Integer j = 0; j < cols; j++) {
+                row.add(mat1[i][j] + mat2[i][j]);
+            }
+            result.add(row);
+        }
+
+        // Print result in matrix form
+        System.debug('Result of matrix addition:');
+        for (Integer i = 0; i < rows; i++) {
+            String row = '';
+            for (Integer j = 0; j < cols; j++) {
+                row += result[i][j] + '\t';
+            }
+            System.debug(row.trim());
+        }
+    }
+
+    public static void test() {
+        List<List<Integer>> mat1 = new List<List<Integer>>{
+            new List<Integer>{1, 2},
+            new List<Integer>{3, 4}
+        };
+
+        List<List<Integer>> mat2 = new List<List<Integer>>{
+            new List<Integer>{5, 6},
+            new List<Integer>{7, 8}
+        };
+
+        addMatrices(mat1, mat2);
+    }
+}
+
+//Matrix Multiplication
+public class MatrixMultiplication {
+
+    public static List<List<Integer>> multiplyMatrices(List<List<Integer>> mat1, List<List<Integer>> mat2) {
+        Integer rows1 = mat1.size();
+        Integer cols1 = mat1[0].size();
+        Integer rows2 = mat2.size();
+        Integer cols2 = mat2[0].size();
+
+        // Matrix multiplication is only possible if columns of mat1 == rows of mat2
+        if (cols1 != rows2) {
+            System.debug('Matrix multiplication not possible. Columns of mat1 must be equal to rows of mat2.');
+            return new List<List<Integer>>();
+        }
+
+        // Initialize the result matrix
+        List<List<Integer>> result = new List<List<Integer>>();
+        
+        // Initialize result matrix with zeros
+        for (Integer i = 0; i < rows1; i++) {
+            List<Integer> row = new List<Integer>();
+            for (Integer j = 0; j < cols2; j++) {
+                row.add(0);
+            }
+            result.add(row);
+        }
+
+        // Perform matrix multiplication
+        for (Integer i = 0; i < rows1; i++) {
+            for (Integer j = 0; j < cols2; j++) {
+                for (Integer k = 0; k < cols1; k++) {
+                    result[i][j] += mat1[i][k] * mat2[k][j];
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static void test() {
+        List<List<Integer>> mat1 = new List<List<Integer>>{
+            new List<Integer>{1, 2},
+            new List<Integer>{3, 4}
+        };
+
+        List<List<Integer>> mat2 = new List<List<Integer>>{
+            new List<Integer>{5, 6},
+            new List<Integer>{7, 8}
+        };
+
+        List<List<Integer>> result = multiplyMatrices(mat1, mat2);
+
+        // Print the result matrix
+        System.debug('Result of matrix multiplication:');
+        for (Integer i = 0; i < result.size(); i++) {
+            String row = '';
+            for (Integer j = 0; j < result[i].size(); j++) {
+                row += result[i][j] + '\t';
+            }
+            System.debug(row.trim());
+        }
+    }
+}
+
+//Area of Geometry
+public class AreaofGeometry {
+    
+    public static Decimal areaOfCircle(Decimal radius) {
+        return Math.PI * radius * radius;
+    }
+
+    public static Decimal areaOfRectangle(Decimal length, Decimal width) {
+        return length * width;
+    }
+
+    public static Decimal areaOfTriangle(Decimal base, Decimal height) {
+        return 0.5 * base * height;
+    }
+    
+    public static void test()
+    {
+        Decimal circleArea = AreaofGeometry.areaOfCircle(5.0);
+		Decimal rectArea = AreaofGeometry.areaOfRectangle(4.0, 6.0);
+		Decimal triArea = AreaofGeometry.areaOfTriangle(3.0, 7.0);
+
+		System.debug('Area of Circle: ' + circleArea);
+		System.debug('Area of Rectangle: ' + rectArea);
+		System.debug('Area of Triangle: ' + triArea);
+
+    }
+}
+
+//Fibonacci Series
+public class FibbonaciSeries {
+
+    public static void generateFibonacci(Integer n) {
+        Integer a = 0;
+        Integer b = 1;
+        System.debug('Fibonacci Series:');
+
+        if (n >= 1) {
+            System.debug(a);
+        }
+        if (n >= 2) {
+            System.debug(b);
+        }
+
+        for (Integer i = 3; i <= n; i++) {
+            Integer next = a + b;
+            System.debug(next);
+            a = b;
+            b = next;
+        }
+    }
+
+    public static void test() {
+        Integer n = 10;
+        generateFibonacci(n);
+    }
+}
+
+//Array Addition
+public class ArrayAddition {
+
+    public static List<Integer> addArrays(List<Integer> arr1, List<Integer> arr2) {
+        if (arr1.size() != arr2.size()) {
+            System.debug('Arrays must have the same length for addition.');
+            return new List<Integer>();
+        }
+
+        List<Integer> result = new List<Integer>();
+        for (Integer i = 0; i < arr1.size(); i++) {
+            result.add(arr1.get(i) + arr2.get(i));
+        }
+
+        return result;
+    }
+
+    public static void test() {
+        List<Integer> arr1 = new List<Integer>{1, 2, 3, 4};
+        List<Integer> arr2 = new List<Integer>{5, 6, 7, 8};
+
+        List<Integer> result = addArrays(arr1, arr2);
+        System.debug('Result of array addition: ' + result);
+    }
+}
+
+//Currency Converter
+
+public class CurrencyConverter {
+
+    // Exchange rates relative to USD
+    public static Map<String, Decimal> exchangeRates = new Map<String, Decimal>{
+        'USD' => 1.0,
+        'INR' => 83.2,
+        'EUR' => 0.91,
+        'GBP' => 0.78,
+        'JPY' => 155.5
+    };
+
+    // Generic currency converter
+    public static Decimal convert(Decimal amount, String fromCurrency, String toCurrency) {
+        if (!exchangeRates.containsKey(fromCurrency) || !exchangeRates.containsKey(toCurrency)) {
+            System.debug('Unsupported currency code.');
+            return -1;
+        }
+
+        Decimal usdAmount = amount / exchangeRates.get(fromCurrency);
+        Decimal converted = usdAmount * exchangeRates.get(toCurrency);
+
+        return converted.setScale(2);
+    }
+
+    // Individual conversion methods
+    public static Decimal usdToInr(Decimal usd) {
+        return convert(usd, 'USD', 'INR');
+    }
+
+    public static Decimal inrToUsd(Decimal inr) {
+        return convert(inr, 'INR', 'USD');
+    }
+
+    public static Decimal usdToEur(Decimal usd) {
+        return convert(usd, 'USD', 'EUR');
+    }
+
+    public static Decimal eurToUsd(Decimal eur) {
+        return convert(eur, 'EUR', 'USD');
+    }
+
+    public static Decimal usdToJpy(Decimal usd) {
+        return convert(usd, 'USD', 'JPY');
+    }
+
+    public static Decimal jpyToUsd(Decimal jpy) {
+        return convert(jpy, 'JPY', 'USD');
+    }
+
+    // Sample execution
+    public static void test() {
+        System.debug('100 INR to USD: ' + inrToUsd(100));
+        System.debug('50 USD to EUR: ' + usdToEur(50));
+        System.debug('75 GBP to JPY: ' + convert(75, 'GBP', 'JPY'));
+        System.debug('100 USD to INR: ' + usdToInr(100));
+        System.debug('200 EUR to USD: ' + eurToUsd(200));
+        System.debug('500 JPY to USD: ' + jpyToUsd(500));
+    }
+}
+
+//Interest
+
+public class Interest {
+    // Define properties
+    public Decimal principal { get; set; }
+    public Decimal rate { get; set; }
+    public Decimal timePeriod { get; set; }
+
+    public Decimal simpleInterest { get; set; }
+    public Decimal compoundInterest { get; set; }
+
+    // Method to calculate Simple and Compound Interest
+    public void calculate() {
+        simpleInterest = (principal * rate * timePeriod) / 100;
+        Decimal compoundAmount = principal * calculatePower((1 + rate / 100), timePeriod);
+        compoundInterest = compoundAmount - principal;
+    }
+
+    // Custom method to calculate power
+    private Decimal calculatePower(Decimal base, Decimal exponent) {
+        Decimal result = 1;
+        for (Integer i = 0; i < (Integer)exponent; i++) {
+            result *= base;
+        }
+        return result;
+    }
+
+    // Static method to execute and test
+    public static void test() {
+        Interest i = new Interest();
+        i.principal = 10000;
+        i.rate = 5;
+        i.timePeriod = 3;
+
+        i.calculate();
+
+        System.debug('Simple Interest: ' + i.simpleInterest);
+        System.debug('Compound Interest: ' + i.compoundInterest);
+    }
+}
+
+//Temp Conversion
+
+public class TempConversion {
+
+    // Convert Celsius to Fahrenheit
+    public static Double celsiusToFahrenheit(Double celsius) {
+        return (celsius * 9/5) + 32;
+    }
+
+    // Convert Celsius to Kelvin
+    public static Double celsiusToKelvin(Double celsius) {
+        return celsius + 273.15;
+    }
+
+    // Convert Fahrenheit to Celsius
+    public static Double fahrenheitToCelsius(Double fahrenheit) {
+        return (fahrenheit - 32) * 5/9;
+    }
+
+    // Convert Kelvin to Celsius
+    public static Double kelvinToCelsius(Double kelvin) {
+        return kelvin - 273.15;
+    }
+
+    // Sample execution
+    public static void test() {
+        Double c = 25.0;
+        Double f = 77.0;
+        Double k = 298.15;
+
+        System.debug('25°C to Fahrenheit: ' + celsiusToFahrenheit(c));
+        System.debug('25°C to Kelvin: ' + celsiusToKelvin(c));
+        System.debug('77°F to Celsius: ' + fahrenheitToCelsius(f));
+        System.debug('298.15K to Celsius: ' + kelvinToCelsius(k));
+    }
+}
+
+//Prime Number
+
+public class PrimeNumber {
+
+    public static Boolean isPrime(Integer num) {
+        if (num <= 1) {
+            return false;
+        }
+
+        for (Integer i = 2; i <= Math.sqrt(num); i++) {
+            if (Math.mod(num, i) == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static void test() {
+        Integer num = 29;
+        Boolean result = isPrime(num);
+        
+        if (result) {
+            System.debug(num + ' is a prime number.');
+        } else {
+            System.debug(num + ' is not a prime number.');
+        }
+    }
+}
+

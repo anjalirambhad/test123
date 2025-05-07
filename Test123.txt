@@ -1,0 +1,1190 @@
+//BFS-DFS - 1
+
+import java.util.*;
+import java.io.*;
+
+class Graph {
+    private Map<Integer, List<Integer>> adjList = new HashMap<>();
+
+    public void addEdge(int u, int v) {
+        adjList.computeIfAbsent(u, k -> new ArrayList<>()).add(v);
+        adjList.computeIfAbsent(v, k -> new ArrayList<>()).add(u);
+    }
+
+    public void dfs(int start) {
+        Set<Integer> visited = new HashSet<>();
+        List<Integer> traversal = new ArrayList<>();
+        System.out.println("\nDFS (Step-by-step traversal):");
+        dfsRecursive(start, visited, 0, traversal);
+    }
+
+    public void dfsRecursive(int node, Set<Integer> visited, int depth, List<Integer> traversal) {
+        if (visited.contains(node))
+            return;
+
+        visited.add(node);
+        traversal.add(node);
+        System.out.println("Visited Node: " + node + " at depth: " + depth + " -> Current DFS Traversal: " + traversal);
+
+        for (int neighbor : adjList.getOrDefault(node, new ArrayList<>())) {
+            if (!visited.contains(neighbor)) {
+                dfsRecursive(neighbor, visited, depth + 1, traversal);
+            }
+        }
+    }
+
+    public void bfs(int start) {
+        Set<Integer> visited = new HashSet<>();
+        Queue<Integer> queue = new LinkedList<>();
+        List<Integer> traversal = new ArrayList<>();
+
+        visited.add(start);
+        queue.add(start);
+
+        int level = 0;
+        System.out.println("\nBFS (Level-by-level, step-by-step traversal):");
+
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            System.out.print("Level " + level + ": ");
+            for (int i = 0; i < size; i++) {
+                int node = queue.poll();
+                traversal.add(node);
+                System.out.print(node + " ");
+                for (int neighbor : adjList.getOrDefault(node, new ArrayList<>())) {
+                    if (!visited.contains(neighbor)) {
+                        visited.add(neighbor);
+                        queue.add(neighbor);
+                    }
+                }
+            }
+            System.out.println("-> Current BFS Traversal: " + traversal);
+            level++;
+        }
+    }
+}
+
+public class Assignment1 {
+    public static void main(String[] args) {
+        Graph g = new Graph();
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter the number of edges: ");
+        int numEdges = sc.nextInt();
+
+        System.out.println("Enter edges (src dest):");
+        for (int i = 0; i < numEdges; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            g.addEdge(u, v);
+        }
+
+        System.out.print("Enter the starting node for traversal: ");
+        int start = sc.nextInt();
+
+        g.dfs(start);
+        g.bfs(start);
+    }
+}
+//Output:
+// Enter the number of edges: 11
+// Enter edges (src dest):
+// 0 1
+// 0 3
+// 1 2
+// 1 3
+// 1 5
+// 1 6
+// 2 3
+// 2 4
+// 2 5
+// 3 4
+// 4 6
+// Enter the starting node for traversal: 0
+
+// DFS (Step-by-step traversal):
+// Visited Node: 0 at depth: 0 -> Current DFS Traversal: [0]
+// Visited Node: 1 at depth: 1 -> Current DFS Traversal: [0, 1]
+// Visited Node: 2 at depth: 2 -> Current DFS Traversal: [0, 1, 2]
+// Visited Node: 3 at depth: 3 -> Current DFS Traversal: [0, 1, 2, 3]
+// Visited Node: 4 at depth: 4 -> Current DFS Traversal: [0, 1, 2, 3, 4]
+// Visited Node: 6 at depth: 5 -> Current DFS Traversal: [0, 1, 2, 3, 4, 6]
+// Visited Node: 5 at depth: 3 -> Current DFS Traversal: [0, 1, 2, 3, 4, 6, 5]
+
+// BFS (Level-by-level, step-by-step traversal):
+// Level 0: 0 -> Current BFS Traversal: [0]
+// Level 1: 1 3 -> Current BFS Traversal: [0, 1, 3]
+// Level 2: 2 5 6 4 -> Current BFS Traversal: [0, 1, 3, 2, 5, 6, 4]
+
+
+
+
+//A STAR - 2
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+
+class Node {
+    Node parent;
+    int[][] mat;
+    int g, h;
+    int x, y;
+
+    public Node(int[][] mat, int x, int y, int g, int h, Node parent) {
+        this.mat = new int[3][3];
+        for (int i = 0; i < 3; i++)
+            System.arraycopy(mat[i], 0, this.mat[i], 0, 3);
+        this.g = g;
+        this.h = h;
+        this.x = x;
+        this.y = y;
+        this.parent = parent;
+    }
+}
+
+public class Assignment2 {
+
+    static final int[] dRow = {1, 0, -1, 0};
+    static final int[] dCol = {0, -1, 0, 1};
+    static final int N = 3;
+
+    static void printMatrix(int[][] mat, int g, int h) {
+        for (int[] row : mat) {
+            for (int val : row) {
+                System.out.print(val + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("g: " + g + " h: " + h + " f: " + (g + h));
+    }
+
+    static Node newNode(int[][] mat, int x, int y, int nx, int ny, int g, Node parent) {
+        Node node = new Node(mat, nx, ny, g, Integer.MAX_VALUE, parent);
+        int temp = node.mat[x][y];
+        node.mat[x][y] = node.mat[nx][ny];
+        node.mat[nx][ny] = temp;
+        return node;
+    }
+
+    static int heuristic(int[][] initial, int[][] goal) {
+        int count = 0;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (initial[i][j] != 0 && initial[i][j] != goal[i][j])
+                    count++;
+            }
+        }
+        return count;
+    }
+
+    static boolean isSafe(int x, int y) {
+        return x >= 0 && x < N && y >= 0 && y < N;
+    }
+
+    static void printPath(Node root) {
+        if (root == null) return;
+        printPath(root.parent);
+        printMatrix(root.mat, root.g, root.h);
+        System.out.println();
+    }
+
+    static boolean isSolvable(int[][] start, int[][] goal) {
+        int[] startArr = new int[N * N];
+        int[] goalArr = new int[N * N];
+        int idx = 0;
+    
+        // Flatten both matrices into 1D arrays
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                startArr[idx++] = start[i][j];
+    
+        idx = 0;
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                goalArr[idx++] = goal[i][j];
+    
+        // Map goal values to their positions
+        int[] position = new int[N * N];
+        for (int i = 0; i < N * N; i++) {
+            position[goalArr[i]] = i;
+        }
+    
+        // Convert start to goal-relative indices
+        int[] relativeStart = new int[N * N];
+        for (int i = 0; i < N * N; i++) {
+            relativeStart[i] = position[startArr[i]];
+        }
+    
+        // Count inversions in relativeStart (excluding 0)
+        int invCount = 0;
+        for (int i = 0; i < N * N; i++) {
+            if (relativeStart[i] == 0) continue;
+            for (int j = i + 1; j < N * N; j++) {
+                if (relativeStart[j] == 0) continue;
+                if (relativeStart[i] > relativeStart[j]) invCount++;
+            }
+        }
+    
+        return invCount % 2 == 0;
+    }
+    
+    
+    static void solve(int[][] start, int x, int y, int[][] goal) {
+        PriorityQueue<Node> pq = new PriorityQueue<>((lhs, rhs) -> (lhs.g + lhs.h) - (rhs.g + rhs.h));
+        Node root = newNode(start, x, y, x, y, 0, null);
+        root.h = heuristic(start, goal);
+        pq.add(root);
+
+        while (!pq.isEmpty()) {
+            Node m = pq.poll();
+            if (m.h == 0) {
+                System.out.println("\n\nThis puzzle is solved in " + m.g + " moves");
+                printPath(m);
+                return;
+            }
+
+            for (int i = 0; i < 4; i++) {
+                int dx = m.x + dRow[i];
+                int dy = m.y + dCol[i];
+                if (isSafe(dx, dy)) {
+                    Node child = newNode(m.mat, m.x, m.y, dx, dy, m.g + 1, m);
+                    child.h = heuristic(child.mat, goal);
+                    pq.add(child);
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int[][] start = new int[N][N];
+        int[][] goal = new int[N][N];
+        int x = -1, y = -1;
+
+        try (Scanner sc = new Scanner(new File("input2.txt"))) {
+            System.out.println("Reading start and goal states from file 'input2.txt'...");
+
+            // Reading start state
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N; j++) {
+                    start[i][j] = sc.nextInt();
+                    if (start[i][j] == 0) {
+                        x = i;
+                        y = j;
+                    }
+                }
+            }
+
+            // Reading goal state
+            for (int i = 0; i < N; i++) {
+                for (int j = 0; j < N; j++) {
+                    goal[i][j] = sc.nextInt();
+                }
+            }
+
+            if (!isSolvable(start, goal)) {
+                System.out.println("This puzzle is unsolvable (odd number of inversions).");
+            } else {
+                solve(start, x, y, goal);
+            }
+            
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found. Please make sure 'puzzle_input.txt' exists in the directory.");
+        }
+    }
+}
+
+// input2.txt
+// 2 8 3
+// 1 6 4
+// 7 0 5
+// 1 2 3
+// 8 0 4
+// 7 6 5
+
+// output:
+// This puzzle is solved in 5 moves
+// 2 8 3
+// 1 6 4
+// 7 0 5
+// g: 0 h: 4 f: 4
+
+// 2 8 3
+// 1 0 4
+// 7 6 5
+// g: 1 h: 3 f: 4
+
+// 2 0 3
+// 1 8 4
+// 7 6 5
+// g: 2 h: 3 f: 5
+
+// 0 2 3
+// 1 8 4
+// 7 6 5
+// g: 3 h: 2 f: 5
+
+// 1 2 3
+// 0 8 4
+// 7 6 5
+// g: 4 h: 1 f: 5
+
+// 1 2 3
+// 8 0 4
+// 7 6 5
+// g: 5 h: 0 f: 5
+
+
+//Prims - Kruskals (GreedySearch) - 3
+
+import java.util.*;
+
+class Edge {
+    int src, des, weight;
+
+    Edge(int s, int d, int w) {
+        src = s;
+        des = d;
+        weight = w;
+    }
+
+}
+
+public class Assign3 {
+    static final int INF = Integer.MAX_VALUE; // Constant representing infinity
+
+    // Function to perform Prim's algorithm and print the Minimum Spanning Tree
+    // (MST)
+    public static void primsMST(int[][] graph, int V) {
+        int[] key = new int[V]; // Key values used to pick minimum weight edge
+        boolean[] mstSet = new boolean[V]; // Boolean array to represent set of vertices included in MST
+        int[] parent = new int[V]; // Array to store constructed MST
+
+        Arrays.fill(key, INF); // Initialize all key values to infinity
+        Arrays.fill(mstSet, false); // Initially no vertices are included in MST
+        key[0] = 0; // Start from the first vertex, so key of first vertex is 0
+        parent[0] = -1; // First node is the root of MST, so it has no parent
+
+        // Loop to construct MST with V vertices
+        for (int count = 0; count < V - 1; count++) {
+            int u = minKey(key, mstSet, V); // Pick the vertex u with the minimum key value not yet included in MST
+            mstSet[u] = true; // Include the picked vertex in the MST set
+
+            // Update key and parent index of the adjacent vertices of the picked vertex
+            for (int v = 0; v < V; v++) {
+                // If graph[u][v] is non-zero, v is not in MST, and weight of (u,v) is smaller
+                // than current key[v]
+                if (graph[u][v] != 0 && !mstSet[v] && graph[u][v] < key[v]) {
+                    parent[v] = u; // Update parent of v
+                    key[v] = graph[u][v]; // Update key value
+                }
+            }
+        }
+
+        // Print the constructed MST
+        System.out.println("\nPrim's MST:");
+        int totalWeight = 0;
+        for (int i = 1; i < V; i++) {
+            System.out.println(parent[i] + " - " + i + " : " + graph[i][parent[i]]); // Print edge and its weight
+            totalWeight += graph[i][parent[i]]; // Add edge weight to total MST weight
+        }
+        System.out.println("Total Weight: " + totalWeight); // Print total weight of MST
+    }
+
+    // Helper function to find the vertex with the minimum key value not yet
+    // included in MST
+    private static int minKey(int[] key, boolean[] mstSet, int V) {
+        int min = INF, minIndex = -1;
+
+        for (int v = 0; v < V; v++) {
+            if (!mstSet[v] && key[v] < min) {
+                min = key[v]; // Update minimum
+                minIndex = v; // Store index of minimum
+            }
+        }
+        return minIndex; // Return the index of the vertex with the minimum key
+    }
+
+    // Function to perform Kruskal's algorithm and print the Minimum Spanning Tree
+    // (MST)
+    public static void kruskalMST(List<Edge> edges, int V) {
+        // Sort all edges in non-decreasing order based on their weight
+        Collections.sort(edges, Comparator.comparingInt(e -> e.weight));
+
+        int parent[] = new int[V]; // Array to store parent of each vertex for union-find
+        int rank[] = new int[V]; // Array to store rank of each subset for union by rank optimization
+
+        // Initially, each vertex is its own parent (makeset)
+        for (int i = 0; i < V; i++) {
+            parent[i] = i;
+        }
+
+        List<Edge> result = new ArrayList<>(); // List to store edges included in MST
+        int totalWeight = 0; // Total weight of MST
+
+        // Traverse sorted edges and apply union-find
+        for (Edge e : edges) {
+            int uSet = findSet(e.src, parent); // Find set (root) of source vertex
+            int vSet = findSet(e.des, parent); // Find set (root) of destination vertex
+
+            // If including this edge does not form a cycle (i.e., sets are different)
+            if (uSet != vSet) {
+                result.add(e); // Include edge in MST
+                totalWeight += e.weight; // Add edge weight to total MST weight
+                unionSet(uSet, vSet, parent, rank); // Union the two sets
+            }
+        }
+
+        // Print the constructed MST
+        System.out.println("\nKruskal's MST: ");
+        for (Edge e : result) {
+            System.out.println(e.src + " - " + e.des + " :" + e.weight); // Print each edge
+        }
+        System.out.println("Total weight: " + totalWeight); // Print total weight of MST
+    }
+
+    // Function to find the representative (root) of the set that element u belongs
+    // to
+    private static int findSet(int u, int[] parent) {
+        if (parent[u] != u) {
+            parent[u] = findSet(parent[u], parent); // Path compression
+        }
+        return parent[u];
+    }
+
+    // Function to perform union of two subsets u and v using union by rank
+    private static void unionSet(int u, int v, int[] parent, int[] rank) {
+        u = findSet(u, parent); // Find root of set u
+        v = findSet(v, parent); // Find root of set v
+
+        // Attach smaller rank tree under root of higher rank tree
+        if (rank[u] < rank[v]) {
+            parent[u] = v;
+        } else if (rank[u] > rank[v]) {
+            parent[v] = u;
+        } else {
+            parent[v] = u;
+            rank[u]++; // Increase rank if both trees have same rank
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter number of vertices and edges: ");
+        int V = sc.nextInt();
+        int E = sc.nextInt();
+
+        int[][] adjMatrix = new int[V][V];
+        List<Edge> edges = new ArrayList<>();
+
+        System.out.println("Enter edges (src dest weight):");
+        for (int i = 0; i < E; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            int w = sc.nextInt();
+            adjMatrix[u][v] = w;
+            adjMatrix[v][u] = w;
+            edges.add(new Edge(u, v, w));
+        }
+
+        primsMST(adjMatrix, V);
+        kruskalMST(edges, V);
+    }
+}
+
+// output:
+// Enter number of vertices and edges: 5 7
+// Enter edges (src dest weight):
+// 0 1 4
+// 0 2 4 
+// 1 2 2
+// 1 3 6
+// 2 3 8
+// 2 4 9
+// 3 4 5
+
+// Prim's MST:
+// 0 - 1 : 4
+// 1 - 2 : 2
+// 1 - 3 : 6
+// 3 - 4 : 5
+// Total Weight: 17
+
+// Kruskal's MST: 
+// 1 - 2 :2
+// 0 - 1 :4
+// 3 - 4 :5
+// 1 - 3 :6
+// Total weight: 17
+
+//N-Queens - 4
+
+import java.util.*; // Importing Java utility classes
+
+public class Assign4 
+{
+    // Function to print the chess board with placed queens
+    static void printBoard(int board[][], int N)
+    {
+        for(int row[]: board) // For each row in the board
+        {
+            for(int cell: row) // For each cell in the row
+            {
+                System.out.print(cell == 1 ? "Q " : ". "); // Print 'Q' if queen is placed, else '.'
+            }
+            System.out.println(); // Move to next line after printing a row
+        }
+    }
+
+    // Function to check if a queen can be safely placed at board[row][col]
+    static boolean isSafe(int board[][], int row, int col, int N)
+    {
+        // Check if there is any queen in the same column above the current row
+        for(int i = 0; i < row; i++)
+        {
+            if(board[i][col] == 1)
+            {
+                return false;
+            }
+        }
+
+        // Check the upper left diagonal for queens
+        for(int i = row, j = col; i >= 0 && j >= 0; i--, j--)
+        {
+            if(board[i][j] == 1)
+            {
+                return false;
+            }
+        }
+
+        // Check the upper right diagonal for queens
+        for(int i = row, j = col; i >= 0 && j < N; i--, j++)
+        {
+            if(board[i][j] == 1)
+            {
+                return false;
+            }
+        }
+
+        return true; // Safe to place the queen
+    }
+
+    // Solves N-Queens problem using backtracking
+    static boolean solveByBacktracking(int board[][], int row, int N)
+    {
+        // If all queens are placed, return true
+        if(row == N)
+            return true;
+        
+        // Try placing a queen in all columns of the current row
+        for(int col = 0; col < N; col++)
+        {
+            // Check if it's safe to place a queen here
+            if(isSafe(board, row, col, N))
+            {
+                board[row][col] = 1; // Place the queen
+                System.out.println("Placing queen at (" + row + "," + col + "):");
+                printBoard(board, N); // Print the board after placing queen
+
+                // Recurse to place rest of the queens
+                if(solveByBacktracking(board, row + 1, N))
+                    return true;
+
+                // If placing queen at board[row][col] doesn't lead to a solution,
+                // then backtrack (remove queen and try next position)
+                board[row][col] = 0;
+                System.out.println("Backtracking from (" + row + "," + col + "):");
+                printBoard(board, N); // Print the board after backtracking
+            }
+        }
+
+        return false; // No valid position found in this row
+    }
+
+    // Solves N-Queens using Branch and Bound optimization
+    static boolean solveByBranchAndBound(int[][] board, int row, int N, int colConflicts[], int diag1Conflicts[], int diag2Conflicts[])
+    {
+        // If all queens are placed, return true
+        if(row == N)
+            return true;
+
+        // Try placing a queen in all columns of current row
+        for(int col = 0; col < N; col++)
+        {
+            // Check if column and diagonals are free of conflicts
+            if(colConflicts[col] == 0 && diag1Conflicts[row - col + N - 1] == 0 && diag2Conflicts[row + col] == 0)
+            {
+                board[row][col] = 1; // Place the queen
+                colConflicts[col] = 1; // Mark column as occupied
+                diag1Conflicts[row - col + N - 1] = 1; // Mark \ diagonal as occupied
+                diag2Conflicts[row + col] = 1; // Mark / diagonal as occupied
+
+                System.out.println("Placing queen at (" + row + "," + col + "):");
+                printBoard(board, N); // Print the board after placing queen
+
+                // Recurse to place rest of the queens
+                if(solveByBranchAndBound(board, row + 1, N, colConflicts, diag1Conflicts, diag2Conflicts))
+                    return true;
+
+                // Backtrack and unmark the position and conflicts
+                board[row][col] = 0;
+                colConflicts[col] = 0;
+                diag1Conflicts[row - col + N - 1] = 0;
+                diag2Conflicts[row + col] = 0;
+
+                System.out.println("Backtracking from (" + row + "," + col + "):");
+                printBoard(board, N); // Print the board after backtracking
+            }
+        }
+
+        return false; // No valid position found in this row
+    }
+
+    // Main function to take input and solve the problem
+    public static void main(String[] args)
+    {
+        Scanner sc = new Scanner(System.in); // Scanner for user input
+
+        System.out.println("Enter the number of queens:");
+        int N = sc.nextInt(); // Number of queens (also size of the board)
+
+        int choice = 0; // User's menu choice
+        int board[][] = new int[N][N]; // Create N x N chess board
+
+        // Menu-driven loop until user exits
+        while(choice != 3)
+        {
+            // Display choices to user
+            System.out.println("1.Solve by Backtracking\n2.Solve by Branch and Bound\n3.Exit\nEnter your choice: ");
+            choice = sc.nextInt(); // Take user's choice
+
+            switch (choice) 
+            {
+                case 1:
+                    System.out.println("\nBacktracking Solution: ");
+                    // Try solving with backtracking
+                    if(solveByBacktracking(board, 0, N))
+                    {
+                        System.out.println("Solution found using Backtracking");
+                        printBoard(board, N); // Print the final board
+                    }
+                    else 
+                    {
+                        System.out.println("No solution exists for " + N + " queens using Backtracking");
+                    }
+                    break;
+
+                case 2:
+                    System.out.println("\nBranch and Bound Solution: ");
+                    // Arrays to mark conflicts in columns and diagonals
+                    int[] colConflicts = new int[N];
+                    int[] diag1Conflicts = new int[2 * N - 1];
+                    int[] diag2Conflicts = new int[2 * N - 1];
+
+                    // Try solving with branch and bound
+                    if(solveByBranchAndBound(board, 0, N, colConflicts, diag1Conflicts, diag2Conflicts))
+                    {
+                        System.out.println("Solution found using Branch and Bound:");
+                        printBoard(board, N); // Print the final board
+                    }
+                    else 
+                    {
+                        System.out.println("No solution exists for " + N + " queens using Branch and Bound");
+                    }
+                    break;
+
+                case 3:
+                    System.out.println("Exited from the program!"); // Exit message
+                    break;
+
+                default:
+                    System.out.println("Invalid choice!"); // Handle invalid menu input
+                    break;
+            }
+        }
+    }
+}
+
+// output:
+// Enter the number of queens:
+// 4
+// 1.Solve by Backtracking
+// 2.Solve by Branch and Bound
+// 3.Exit
+// Enter your choice: 
+// 1
+
+// Backtracking Solution: 
+// Placing queen at (0,0):
+// Q . . . 
+// . . . . 
+// . . . . 
+// . . . . 
+// Placing queen at (1,2):
+// Q . . . 
+// . . Q . 
+// . . . . 
+// . . . . 
+// Backtracking from (1,2):
+// Q . . . 
+// . . . .
+// . . . .
+// . . . .
+// Placing queen at (1,3):
+// Q . . .
+// . . . Q
+// . . . .
+// . . . .
+// Placing queen at (2,1):
+// Q . . .
+// . . . Q
+// . Q . .
+// . . . .
+// Backtracking from (2,1):
+// Q . . .
+// . . . Q
+// . . . .
+// . . . .
+// Backtracking from (1,3):
+// Q . . .
+// . . . .
+// . . . .
+// . . . .
+// Backtracking from (0,0):
+// . . . .
+// . . . .
+// . . . .
+// . . . .
+// Placing queen at (0,1):
+// . Q . .
+// . . . .
+// . . . .
+// . . . .
+// Placing queen at (1,3):
+// . Q . .
+// . . . Q
+// . . . .
+// . . . .
+// Placing queen at (2,0):
+// . Q . .
+// . . . Q
+// Q . . .
+// . . . .
+// Placing queen at (3,2):
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Solution found using Backtracking
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// 1.Solve by Backtracking
+// 2.Solve by Branch and Bound
+// 3.Exit
+// Enter your choice:
+// 2
+
+// Branch and Bound Solution:
+// Placing queen at (0,0):
+// Q Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Placing queen at (1,2):
+// Q Q . .
+// . . Q Q
+// Q . . .
+// . . Q .
+// Backtracking from (1,2):
+// Q Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Placing queen at (1,3):
+// Q Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Placing queen at (2,1):
+// Q Q . .
+// . . . Q
+// Q Q . .
+// . . Q .
+// Backtracking from (2,1):
+// Q Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Backtracking from (1,3):
+// Q Q . .
+// . . . .
+// Q . . .
+// . . Q .
+// Backtracking from (0,0):
+// . Q . .
+// . . . .
+// Q . . .
+// . . Q .
+// Placing queen at (0,1):
+// . Q . .
+// . . . .
+// Q . . .
+// . . Q .
+// Placing queen at (1,3):
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Placing queen at (2,0):
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Placing queen at (3,2):
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// Solution found using Branch and Bound:
+// . Q . .
+// . . . Q
+// Q . . .
+// . . Q .
+// 1.Solve by Backtracking
+// 2.Solve by Branch and Bound
+// 3.Exit
+// Enter your choice:
+// 3
+// Exited from the program!
+
+//Chatbot - 5
+
+
+import random
+import re
+from sentence_transformers import SentenceTransformer, util
+import tkinter as tk
+from tkinter import scrolledtext
+
+
+
+# Load pre-trained BERT model
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Intent dictionary
+intents = {
+    "greeting": {
+        "patterns": ["Hi", "Hello", "Hey there", "Heyyaa", "What's up?", "Yo", "Howdy", "Hola"],
+        "responses": [
+            "Hi! How can I assist you today?",
+            "Hello there! Need help with something?",
+            "Hey! What can I do for you?",
+            "Yo! How can I help?"
+        ]
+    },
+    "order_status": {
+        "patterns": ["Where is my order?", "Track my order", "Order status please", "Where's my stuff?", "Is my order here yet?"],
+        "responses": [
+            "Please share your order ID so I can check it for you.",
+            "Sure! What’s your order ID?",
+            "Let me know your order number to help you track it."
+        ]
+    },
+    "cancel_order": {
+        "patterns": ["Cancel my order", "I want to cancel", "Can I cancel this order?", "I changed my mind", "How do I cancel the order?"],
+        "responses": [
+            "To cancel, go to 'My Orders' and choose 'Cancel Order'.",
+            "Yes, you can cancel if it hasn't been shipped yet.",
+            "Just head to your orders page and select 'Cancel'."
+        ]
+    },
+    "return_policy": {
+        "patterns": ["How to return?", "Return policy?", "Can I return my item?", "What is the return policy?", "How do I return an item?"],
+        "responses": [
+            "You can return within 30 days of delivery.",
+            "Check your order details to initiate a return.",
+            "Returns are accepted within 30 days — make sure the item is unused!"
+        ]
+    },
+    "thanks": {
+        "patterns": ["Thanks", "Thank you", "Much appreciated", "Thanks a lot", "Thanks for your help"],
+        "responses": [
+            "You're most welcome!",
+            "Happy to help!",
+            "Glad I could assist!"
+        ]
+    },
+    "goodbye": {
+        "patterns": ["Bye", "Goodbye", "See you later", "Take care", "Catch you later"],
+        "responses": [
+            "Thanks for visiting! Hope to see you again soon!",
+            "Goodbye! Let us know if you need anything else.",
+            "Take care! Come back anytime."
+        ]
+    }
+}
+
+# Flatten patterns and tags
+all_patterns = []
+tags = []
+for tag, data in intents.items():
+    for pattern in data["patterns"]:
+        all_patterns.append(pattern)
+        tags.append(tag)
+
+# Encode all patterns once
+pattern_embeddings = model.encode(all_patterns, convert_to_tensor=True)
+
+# Context tracker
+context = {
+    "expecting_order_id": False,
+    "last_intent": None
+}
+
+def preprocess(text):
+    return re.sub(r"[^\w\s]", "", text.lower()).strip()
+
+def get_response(user_input):
+    clean_input = preprocess(user_input)
+
+    if context["expecting_order_id"]:
+        context["expecting_order_id"] = False
+        return f"You can check the status of your order (ID: {clean_input}) by visiting your Orders Page:\n👉 https://www.example.com/myorders"
+
+    user_embedding = model.encode(clean_input, convert_to_tensor=True)
+    similarities = util.cos_sim(user_embedding, pattern_embeddings)[0]
+    best_match = similarities.argmax().item()
+    confidence = similarities[best_match].item()
+
+    if confidence < 0.5:
+        return "Sorry, I didn't quite get that. Could you please rephrase your request?"
+
+    matched_tag = tags[best_match]
+
+    if matched_tag == "order_status":
+        context["expecting_order_id"] = True
+
+    context["last_intent"] = matched_tag
+
+    return random.choice(intents[matched_tag]["responses"])
+
+# ----------- UI with better design -----------
+
+def reply():
+    msg = entry.get()
+    if msg.strip() == "":
+        return
+    chat.config(state=tk.NORMAL)
+    chat.insert(tk.END, "You: " + msg + "\n")
+    entry.delete(0, tk.END)
+    if msg.lower() == "quit":
+        chat.insert(tk.END, "Bot: Goodbye!\n")
+        root.destroy()
+    else:
+        chat.insert(tk.END, "Bot: " + get_response(msg) + "\n")
+    chat.config(state=tk.DISABLED)
+    chat.yview(tk.END)
+
+root = tk.Tk()
+root.title("E-commerce ChatBot")
+root.geometry("500x500")
+root.resizable(False, False)
+
+# Chat area with scrollbar
+chat = scrolledtext.ScrolledText(root, wrap=tk.WORD, font=("Arial", 12), bg="white", state=tk.DISABLED)
+chat.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+# Bottom input area
+frame = tk.Frame(root)
+frame.pack(padx=10, pady=10, fill=tk.X)
+
+entry = tk.Entry(frame, font=("Arial", 12))
+entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+
+send_button = tk.Button(frame, text="Send", bg="#007acc", fg="white", font=("Arial", 12), command=reply)
+send_button.pack(side=tk.RIGHT)
+
+chat.config(state=tk.NORMAL)
+chat.insert(tk.END, "Bot: Hello! How can I help you today?\n")
+chat.config(state=tk.DISABLED)
+
+root.mainloop()
+
+//pip install sentence-transformers
+
+//Expert System - 6
+                           
+class AdvancedMedicalExpertSystem:
+    def __init__(self):
+        # Expanded disease dictionary with more diseases and symptoms
+        self.diseases = {
+            "Common Cold": {
+                "symptoms": {
+                    "sneezing": 3,
+                    "runny nose": 3,
+                    "cough": 2,
+                    "sore throat": 2,
+                    "headache": 1
+                },
+                "advice": "Take rest and stay hydrated. Use nasal sprays.",
+                "urgency": "Low"
+            },
+            "Flu": {
+                "symptoms": {
+                    "fever": 4,
+                    "cough": 3,
+                    "fatigue": 3,
+                    "body ache": 3,
+                    "chills": 2,
+                    "sore throat": 2
+                },
+                "advice": "Rest, drink fluids, and take antipyretics.",
+                "urgency": "Medium"
+            },
+            "COVID-19": {
+                "symptoms": {
+                    "fever": 4,
+                    "dry cough": 4,
+                    "loss of smell": 5,
+                    "difficulty breathing": 5,
+                    "fatigue": 3,
+                    "headache": 2,
+                    "chills": 2
+                },
+                "advice": "Isolate and consult a healthcare provider immediately.",
+                "urgency": "High"
+            },
+            "Food Poisoning": {
+                "symptoms": {
+                    "vomiting": 4,
+                    "diarrhea": 4,
+                    "stomach pain": 3,
+                    "fever": 2,
+                    "nausea": 3
+                },
+                "advice": "Take ORS, stay hydrated, and see a doctor if severe.",
+                "urgency": "Medium"
+            },
+            "Strep Throat": {
+                "symptoms": {
+                    "sore throat": 4,
+                    "fever": 4,
+                    "red rash": 3,
+                    "headache": 2
+                },
+                "advice": "Consult a doctor for antibiotics.",
+                "urgency": "Medium"
+            },
+            "Pneumonia": {
+                "symptoms": {
+                    "cough": 4,
+                    "difficulty breathing": 5,
+                    "fever": 4,
+                    "fatigue": 3,
+                    "chest pain": 4
+                },
+                "advice": "Seek medical help immediately.",
+                "urgency": "High"
+            },
+            "Migraine": {
+                "symptoms": {
+                    "headache": 5,
+                    "nausea": 4,
+                    "sensitivity to light": 3,
+                    "vomiting": 3
+                },
+                "advice": "Rest in a dark room and consider pain relief medication.",
+                "urgency": "Medium"
+            }
+        }
+
+    def get_user_symptoms(self):
+        print("\n--- Advanced Symptom Checker ---")
+        print("Enter your symptoms (comma-separated):")
+        user_input = input("Symptoms: ").lower()
+        return set(sym.strip() for sym in user_input.split(','))
+            
+    def diagnose(self, user_symptoms):
+        diagnosis_results = []
+
+        for disease, info in self.diseases.items():
+            symptoms = info["symptoms"]
+            matched_weight = sum(weight for sym, weight in symptoms.items() if sym in user_symptoms)
+            total_weight = sum(symptoms.values())
+            confidence = matched_weight / total_weight
+
+            # Adjust confidence and allow diagnosis if confidence is more than 0.4
+            if confidence >= 0.4:
+                diagnosis_results.append({
+                    "disease": disease,
+                    "confidence": round(confidence * 100, 2),
+                    "advice": info["advice"],
+                    "urgency": info["urgency"]
+                })
+
+        if diagnosis_results:
+            diagnosis_results.sort(key=lambda x: x["confidence"], reverse=True)
+            print("\n✅ Diagnosis Result (Sorted by Confidence):\n")
+            for result in diagnosis_results:
+                print(f"🔹 Disease: {result['disease']}")
+                print(f"   - Confidence: {result['confidence']}%")
+                print(f"   - Urgency: {result['urgency']}")
+                print(f"   - Advice: {result['advice']}\n")
+        else:
+            print("\n❗ No matching disease found with sufficient confidence. Please consult a doctor.")
+
+    def run(self):
+        user_symptoms = self.get_user_symptoms()
+        self.diagnose(user_symptoms)
+
+# Run it
+if __name__ == "__main__":
+    system = AdvancedMedicalExpertSystem()
+    system.run()
+
+# testcases:
+# fever, sore throat, headache
+# headache, nausea, vomiting
+# fever, cough, body ache, fatigue
+# sore throat, fever, red rash, headache
+
+# //output
+# --- Advanced Symptom Checker ---
+# Enter your symptoms (comma-separated):
+# Symptoms: cough, cold, fever, nausea, headache, fatigue,chills
+
+# ✅ Diagnosis Result (Sorted by Confidence):
+
+# 🔹 Disease: Flu
+#    - Confidence: 70.59%
+#    - Urgency: Medium
+#    - Advice: Rest, drink fluids, and take antipyretics.
+
+# 🔹 Disease: Migraine
+#    - Confidence: 60.0%
+#    - Urgency: Medium
+#    - Advice: Rest in a dark room and consider pain relief medication.
+
+# 🔹 Disease: Pneumonia
+#    - Confidence: 55.0%
+#    - Urgency: High
+#    - Advice: Seek medical help immediately.
+
+# 🔹 Disease: Strep Throat
+#    - Confidence: 46.15%
+#    - Urgency: Medium
+#    - Advice: Consult a doctor for antibiotics.
+
+# 🔹 Disease: COVID-19
+#    - Confidence: 44.0%
+#    - Urgency: High
+#    - Advice: Isolate and consult a healthcare provider immediately.
+
+
+
+
+
+
